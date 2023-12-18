@@ -17,8 +17,15 @@ from osgeo import gdal,osr
 class glacierscene:
     def __init__(self,name,year,data_dir='default',pol='VV',createmeta='auto',
                  WTKstr=None):
-        """loads in the meta data. sets the folders and stuff
-        if creating the metadata, then WTKstr must also be provided"""
+        """Class object to open and run analysis on a stack of SAR images of a glacier region for
+        one year, and one polarization.
+        
+        On initialization it will try to create metadata for a glacier and year, if none currently 
+        exists (set createmeta=True if you want to force metadata creation). If creating the metadata,
+        then WTKstr must also be provided.
+        
+        The dem and glacier mask must be provided. When these are called on, by default this will look in
+        data_dir for dem_align.npy and RGIraster.tiff."""
         
         self.name = name
         self.year = year
@@ -266,6 +273,20 @@ class glacierscene:
     
     
     def loadmask(self,outlinefile=None):
+        """Loads a glacier from a geotiff.
+        The geotiff should have the exact size as rest of the glacier tifs, and 
+        it should have a 1 on locations with a glacier and a 0 on locations without. This mask
+        is often used to restrict where some processing or plotting is done to save resources and 
+        make more useful figures
+        
+        Here is my workflow for creating this mask. 
+        
+        Download the RGI shapefile for glacier outlines of a specific region.
+        Open in QGIS and then vector > data management tools > reproject to put the RGI outlines into
+            the same UTM projection as the glacier data.
+        Then use raster > conversion> rasterize to convert it to a raster. Use the 'raster extent'
+            option to set the extent to that of glacier data. Set 'raster output size units' to 
+            georeferenced units, and set the x and y to 30."""
         if outlinefile==None:
             outlinefile = self.data_dir / 'RGIraster.tiff'
         self.gmask = gdal.Open(str(outlinefile)).ReadAsArray()
@@ -273,12 +294,20 @@ class glacierscene:
 
 
     def loaddem(self,demfile=None,usegmask=True,makebins=True,window=200):
+        """Loads a DEM from either a .tif or .npy source.
+        To create the DEM, you can generate a custom Hyp3 image of the scene, and check the 'save dem'
+        box. Then open that dem tif, as well as one cropped tif for this project of the area you want.
+        Then use the QGIS, raster > align raster."""
         if demfile==None:
             demfile = self.data_dir / 'dem_align.npy'
         if str(demfile)[-4:]=='.tif':
             self.dem = gdal.Open(str(demfile)).ReadAsArray()
         elif str(demfile)[-4:]=='.npy':
-            self.dem = np.load(demfile) # this is bad and it should feel bad
+            self.dem = np.load(demfile)
+        
+        #For some reason QGis caused some of the DEMs to have one less row and column.
+        #In that case, I just append those on to the edge of the DEM. This should be
+        #addressed better in the future.
         if np.shape(self.dem)[0]!=self.imgshp[0]:
             print('adding line to dem')
             self.dem = np.concatenate((self.dem,np.array([self.dem[:,-1]]).transpose()),axis=1)

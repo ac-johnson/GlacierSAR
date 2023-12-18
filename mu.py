@@ -178,6 +178,7 @@ def mapbin(dem,ibin):
     return np.logical_and(dem>=ibin[0],dem<ibin[1])
 
 def get_rgb(imgfilecp,imgfilexp,usept=None):
+    """Creates an RGB image from co- and cross-polarized images"""
     imgcp = gdal.Open(str(imgfilecp)).ReadAsArray()
     imgxp = gdal.Open(str(imgfilexp)).ReadAsArray()
 
@@ -196,7 +197,7 @@ def get_rgb(imgfilecp,imgfilexp,usept=None):
     return rgb
 
 def hyp3_rgb(imgcp,imgxp,k=-24):
-
+    """Runs the algorithm to create an RGB image after files have been opened and prepared""""
     imgcp = 10**(imgcp/10)
     imgxp = 10**(imgxp/10)
     k = 10**(k/10)
@@ -320,6 +321,8 @@ def meltseason(meltvec,datelist):
     return mslen,msstd
 
 def stacksample(onsetstack,gmask,n=1e4):
+    """sample onset timeseries, for the PCA decomposion.
+    (this output can be fed into np.cov() and then np.eig()"""
     nanmask = ~np.isnan(np.sum(onsetstack,axis=0))
     ipts,jpts = np.where((gmask==1) & (nanmask))
     ksamples = np.array(random.sample(range(len(ipts)),int(n)))
@@ -329,6 +332,7 @@ def stacksample(onsetstack,gmask,n=1e4):
 
 # from osgeo import gdal
 def tifxy(tiffile):
+    """this returns and array of the x and y values for each point of a geotiff"""
     ds = gdal.Open(tiffile)
     c, a, b, f, d, e = ds.GetGeoTransform()
     arr = ds.GetRasterBand(1).ReadAsArray()
