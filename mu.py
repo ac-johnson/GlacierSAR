@@ -197,7 +197,7 @@ def get_rgb(imgfilecp,imgfilexp,usept=None):
     return rgb
 
 def hyp3_rgb(imgcp,imgxp,k=-24):
-    """Runs the algorithm to create an RGB image after files have been opened and prepared""""
+    """Runs the algorithm to create an RGB image after files have been opened and prepared"""
     imgcp = 10**(imgcp/10)
     imgxp = 10**(imgxp/10)
     k = 10**(k/10)

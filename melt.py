@@ -33,6 +33,8 @@ class glacierscene:
         
         if data_dir=='default':
             data_dir = Path.cwd() / 'data' / self.name
+        else:
+            data_dir=data_dir/self.name
         
         self.cwd = Path.cwd()
         
@@ -75,6 +77,10 @@ class glacierscene:
         mpfulist = []
     
         files = (self.rawdata_dir).glob('*.tif*')
+        # print(self.rawdata_dir)
+        # print('showing existing files')
+        # for i in files:
+        #     print(i)
         filelist = []
         pdatelist = []
         pnamelist = []
